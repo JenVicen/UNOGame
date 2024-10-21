@@ -185,6 +185,12 @@ public final class WelcomeScreenController implements RequestEventHandler {
 	}
 
 	private void handleStartButtonAction() {
+		// Check if there is only one player
+		if (baseService.getUnoService().getState().getPlayers().size() <= 1) {
+			logger.warn("Cannot start the game with only one player.");
+			return; // Prevent starting the game
+		}
+		
 		logger.info("Player who started game: {}", playerName.getText());
 		try {
 			baseService.getUnoService().setPlayerName(playerName.getText());

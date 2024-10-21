@@ -47,10 +47,6 @@ public class Game {
 			throw new IllegalStateException("no player joined the game");
 		}
 
-		if (state.getPlayers().size() == 1) {
-			this.addPlayer("Bot");
-		}
-
 		if (!isRunning && state.getPlayers().size() >= 2) {
 			// Distribute cards
 			deck.distribute(state.getPlayers());
@@ -115,10 +111,6 @@ public class Game {
 					// Toggle current turn flags
 					checkUno();
 					state.toggleCurrentTurn();
-					// If its the players move let the bot play
-					if (state.containsPlayer("Bot") && !playerName.equals("Bot")) {
-						botAction();
-					}
 				}
 			} else {
 				state.setMessage("Invalid turn");
@@ -131,11 +123,6 @@ public class Game {
 	public synchronized void check(String playerName) {
 		// Only Check and Play can trigger the next players turn
 		state.toggleCurrentTurn();
-		// If its the players move let the bot play
-		if (state.containsPlayer("Bot") && !playerName.equals("Bot")) {
-			checkUno();
-			botAction();
-		}
 	}
 
 	public synchronized void drawCard(String playerName) {
@@ -155,43 +142,8 @@ public class Game {
 
 			logger.info("Player {} has {} cards remaining in hand", player.getName(), player.getHand().size());
 
-			if (state.containsPlayer("Bot") && playerName.equals("Bot")) {
-				state.setMessage("Player Bot drawed card");
-				botAction();
-			}
 		} else {
 			state.setMessage("Invalid turn");
-		}
-	}
-
-	private void botAction() {
-		// If hand matches topcard play first match
-		Optional<CardInterface> optionalMatchingCard = randomCardMatchingTopCard("Bot");
-		if (optionalMatchingCard.isPresent()) {
-			CardInterface matchingCard = optionalMatchingCard.get();
-			UnoColor chosenColor = UnoColor.RED;
-			if (matchingCard.getType() == CardType.WILD) {
-				chosenColor = getColorFromRemainingCards("Bot");
-			}
-			playCard("Bot", matchingCard, cardsLeftInPlayersHand("Bot") == 2, chosenColor);
-			state.setMessage("Bot has played card " + matchingCard.getColor().toString() + " " + matchingCard.getNumber());
-			logger.info("Bot has played card {} {}", matchingCard.getColor().toString(), matchingCard.getNumber());
-		} else {
-			PlayerInterface player;
-			Optional<PlayerInterface> optionalOfPlayer = state.getPlayerByName("Bot");
-			if (optionalOfPlayer.isPresent()) {
-				player = optionalOfPlayer.get();
-			} else {
-				throw new IllegalArgumentException("playerName");
-			}
-			if (player.canDraw()) {
-				drawCard("Bot");
-				logger.info("Bot has drawn a card");
-			} else {
-				state.toggleCurrentTurn();
-				state.setMessage("Bot has already drawn a card, next player");
-				logger.info("Bot has already drawn a card, next player");
-			}
 		}
 	}
 
