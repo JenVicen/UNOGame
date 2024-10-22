@@ -116,6 +116,19 @@ public class Game {
 					deck.addCardToDiscardPile(card);
 					state.setTopDiscardPileCard(card);
 					logger.info("Top card is {} / {}", card.getColor(), card.getNumber());
+
+					// Handle the skip card 
+					if(card.getType().equals(CardType.SKIP)){
+						logger.info("Player {} played a SKIP card, next player's turn is skipped", player.getName());
+						state.toggleCurrentTurn();		// Toggle the turn twice 
+					}
+
+					// Handle the reverse card 
+					if(card.getType().equals(CardType.REVERSE)){
+						logger.info("Player {} played a REVERSE card, play direction changed", player.getName());
+						state.togglePlayDirection();	// Change the direction
+					}
+
 					// Toggle current turn flags
 					checkUno();
 					state.toggleCurrentTurn();

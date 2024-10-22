@@ -39,6 +39,14 @@ public class Deck {
 					drawPile.add(new NumberCard(CardType.NUMBERCARD, unoColor, i));
 					drawPile.add(new NumberCard(CardType.NUMBERCARD, unoColor, i));
 				}
+
+				// Create two skip cards 
+				drawPile.add(new ActionCard(CardType.SKIP, unoColor, 99));
+				drawPile.add(new ActionCard(CardType.SKIP, unoColor, 99));
+
+				// Create two reverse cards 
+				drawPile.add(new ActionCard(CardType.REVERSE, unoColor, 33));
+				drawPile.add(new ActionCard(CardType.REVERSE, unoColor, 33));
 			} else {
 				// Create four wild draw cards
 				for (int i = 1; i <= 4; i++) {
