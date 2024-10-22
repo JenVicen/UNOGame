@@ -78,26 +78,29 @@ public class Game {
 		} else {
 			throw new IllegalArgumentException("playerName");
 		}
-		// Check if is the players turn and if the players hand contains the mentioned card
+		
+		// Check if it's the player's turn and if the player's hand contains the mentioned card
 		if (player.isCurrentTurn() && playersHandContainsExactCard(player, card)) {
-			// Check if card matches current top card
+			// Check if card matches current top card or if the chosen color is respected
 			if (card.getColor().equals(state.getTopDiscardPileCard().getColor()) ||
-					card.getNumber() == state.getTopDiscardPileCard().getNumber() ||
-					card.getType().equals(CardType.WILD) ||
-					state.getTopDiscardPileCard().getType().equals(CardType.WILD)
+				card.getNumber() == state.getTopDiscardPileCard().getNumber() ||
+				card.getType().equals(CardType.WILD) ||
+				state.getTopDiscardPileCard().getType().equals(CardType.WILD) && 
+				(chosenColor != null && card.getColor().equals(chosenColor)) // Verifies if it matches the color
 			) {
-				// Remove from players hand
+
+				// Remove from player's hand
 				removeCardFromPlayersHand(player, card);
 				player.setUno(uno);
-
-				// If it's a wildcard change the color
+	
+				// If it's a wildcard, change the color
 				if (card.getType().equals(CardType.WILD)) {
-					((ActionCard) card).chooseColor(chosenColor);
+					((ActionCard) card).chooseColor(chosenColor); // Store the chosen color in the wild card
 				}
-
+	
 				logger.info("Player {} played card {} / {}", player.getName(), card.getColor(), card.getNumber());
 				logger.info("Player {} has {} cards remaining in hand", player.getName(), player.getHand().size());
-
+	
 				// Check if player has won the game
 				if (player.getHand().size() == 0) {
 					state.setWinner(player.getName());
@@ -118,7 +121,7 @@ public class Game {
 		} else {
 			state.setMessage("Invalid turn");
 		}
-	}
+	}		
 
 	public synchronized void check(String playerName) {
 		// Only Check and Play can trigger the next players turn
