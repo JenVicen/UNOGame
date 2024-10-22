@@ -1,7 +1,7 @@
 package Card;
 
 /**
- * Business Class for number card (has color and number).
+ * Class for number card (has color and number).
  */
 public class NumberCard extends AbstractCard {
     /**

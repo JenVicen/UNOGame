@@ -151,46 +151,6 @@ public class Game {
 		return Objects.requireNonNullElseGet(state, State::new);
 	}
 
-	private Optional<CardInterface> randomCardMatchingTopCard(String playerName) {
-		Optional<PlayerInterface> optionalCurrentPlayer = state.getPlayerByName(playerName);
-		if (optionalCurrentPlayer.isPresent()) {
-			PlayerInterface currentPlayer = optionalCurrentPlayer.get();
-			Optional<CardInterface> possibleCard = currentPlayer.getHand().stream()
-					.filter(card -> card.getColor().equals(state.getTopDiscardPileCard().getColor())
-							|| card.getNumber() == state.getTopDiscardPileCard().getNumber())
-					.findAny();
-			if (!possibleCard.isPresent()) {
-				possibleCard = currentPlayer.getHand().stream()
-						.filter(c -> c.getType() == CardType.WILD).findAny();
-			}
-			return possibleCard;
-		} else {
-			throw new NullPointerException();
-		}
-	}
-
-	private UnoColor getColorFromRemainingCards(String playerName) {
-		Optional<PlayerInterface> optionalCurrentPlayer = state.getPlayerByName(playerName);
-		if (optionalCurrentPlayer.isPresent()) {
-			Optional<CardInterface> possibleCard = optionalCurrentPlayer.get().getHand().stream().filter(
-					card -> card.getType() != CardType.WILD).findFirst();
-			if (possibleCard.isPresent()) {
-				return possibleCard.get().getColor();
-			}
-		}
-		// return default color
-		return UnoColor.RED;
-	}
-
-	private int cardsLeftInPlayersHand(String playerName) {
-		Optional<PlayerInterface> optionalCurrentPlayer = state.getPlayerByName(playerName);
-		if (optionalCurrentPlayer.isPresent()) {
-			return optionalCurrentPlayer.get().getHand().size();
-		} else {
-			throw new NullPointerException();
-		}
-	}
-
 	private boolean playersHandContainsExactCard(PlayerInterface player, CardInterface playedCard) {
 		return player.getHand().stream().anyMatch(
 				card -> (card.getColor().equals(playedCard.getColor()) && card.getNumber() == playedCard.getNumber()));
