@@ -51,12 +51,20 @@ public class Game {
 			// Distribute cards
 			deck.distribute(state.getPlayers());
 
+			// Setting a randomized order of Turns
 			int randNumber = ThreadLocalRandom.current().nextInt(0, state.getPlayers().size() - 1);
 			state.getPlayers().get(randNumber).setCurrentTurn(true);
 
 			// Write player info to state
 			state.setPlayers(state.getPlayers());
-			state.setTopDiscardPileCard(deck.getTopCardOfDiscardPile());
+
+			// Placing the topCard only when it isn't a black card 
+			CardInterface topCard;
+			do {
+				topCard = deck.getTopCardOfDiscardPile();
+			} while (topCard.getColor().equals(UnoColor.BLACK));
+			state.setTopDiscardPileCard(topCard);
+			// state.setTopDiscardPileCard(deck.getTopCardOfDiscardPile());
 			isRunning = true;
 			state.setMessage("Game initialized");
 			return state;
@@ -191,17 +199,19 @@ public class Game {
 		}
 	}
 
+	// Function in charge of checking if the card is in the player's hand 
 	private boolean playersHandContainsExactCard(PlayerInterface player, CardInterface playedCard) {
 		return player.getHand().stream().anyMatch(
 				card -> (card.getColor().equals(playedCard.getColor()) && card.getNumber() == playedCard.getNumber()));
 	}
 
+	// Once used remove the card from the player's hand 
 	private void removeCardFromPlayersHand(PlayerInterface player, CardInterface playedCard) {
 		player.getHand().stream().filter(
 				card -> card.getColor().equals(playedCard.getColor()) && card.getNumber() == playedCard.getNumber())
 				.findFirst().ifPresent(card -> player.getHand().remove(card));
 	}
-
+	
 	private void checkUno() {
 		Optional<PlayerInterface> currentPlayerOptional = state.getCurrentPlayer();
 		if (currentPlayerOptional.isPresent()) {
