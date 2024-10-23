@@ -132,7 +132,7 @@ public final class GameOverviewController implements RequestEventHandler {
 		if (selectedCard != null) {
 			logger.info("Selected card {} {}", selectedCard.getColor(), selectedCard.getNumber());
 			try {
-				if (selectedCard.getType() == CardType.WILD) {
+				if (selectedCard.getType() == CardType.WILD || selectedCard.getType() == CardType.WILDDRAWFOUR) {
 					UnoColor chosenColor = baseService.getNavigationService().showColorDialog();
 					baseService.getUnoService()
 							.setState(baseService.getUnoService().getClient().sendRequest(Request.Command.PLAY,

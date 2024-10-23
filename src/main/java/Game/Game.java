@@ -58,11 +58,14 @@ public class Game {
 			// Write player info to state
 			state.setPlayers(state.getPlayers());
 
-			// Placing the topCard only when it isn't a black card 
+			// Placing the topCard only when it isn't a black card or a special card 
 			CardInterface topCard;
 			do {
 				topCard = deck.getTopCardOfDiscardPile();
-			} while (topCard.getColor().equals(UnoColor.BLACK));
+			} while (topCard.getColor().equals(UnoColor.BLACK) || 
+					topCard.getType().equals(CardType.REVERSE) || 
+					topCard.getType().equals(CardType.SKIP) || 
+					topCard.getType().equals(CardType.DRAWTWO));
 			state.setTopDiscardPileCard(topCard);
 			// state.setTopDiscardPileCard(deck.getTopCardOfDiscardPile());
 			isRunning = true;
@@ -106,7 +109,8 @@ public class Game {
 	private synchronized boolean isMatchingCard(CardInterface card){
 		return card.getColor().equals(state.getTopDiscardPileCard().getColor()) ||
 				card.getNumber() == state.getTopDiscardPileCard().getNumber() ||
-				card.getType().equals(CardType.WILD);
+				card.getColor().equals(UnoColor.BLACK);  
+				// || card.getType().equals(CardType.WILD);
 				// || state.getTopDiscardPileCard().getType().equals(CardType.WILD);
 	}
 
@@ -146,13 +150,16 @@ public class Game {
 					break;
 				case DRAWTWO:
 				case WILDDRAWFOUR:
+					handleDrawCard(player, card);
+					break;
 				default:
 					handleNumberCard();
 					break;
 			}
 		}
 	} 
-
+	
+	// Special behavior for a skip card, game flow changes 
 	private synchronized void handleSkipCard(PlayerInterface player) {
 		logger.info("Player {} played a SKIP card, next player's turn is skipped", player.getName());
 		checkUno();	
@@ -160,7 +167,7 @@ public class Game {
 		state.toggleCurrentTurn();
 	}
 
-	// Special behavior for a reverse card, for a 2 player game or more than two 
+	// Special behavior for a reverse card, for a 2 player game (game flow change) or more than two (change of direction in player order)
 	private synchronized void handleReverseCard(PlayerInterface player) {
 		logger.info("Player {} played a REVERSE card, play direction changed", player.getName());
 		checkUno();
@@ -170,6 +177,33 @@ public class Game {
 			state.togglePlayDirection();
 		}
 		state.toggleCurrentTurn();
+	}
+
+	// Special behavior for a draw two card 
+	private synchronized void handleDrawCard(PlayerInterface player, CardInterface card) {
+		logger.info("Player {} played a DRAW card he needs to draw cards and gets skipped", player.getName());
+		checkUno();
+		state.toggleCurrentTurn();
+
+		// Check if player is present
+		Optional<PlayerInterface> nextPlayerOptional = state.getCurrentPlayer();
+		if (nextPlayerOptional.isPresent()) {
+			PlayerInterface nextPlayer = nextPlayerOptional.get();
+
+			// Force them too draw a card based on type of draw 
+			if (card.getType().equals(CardType.DRAWTWO)) {
+				nextPlayer.addCard(deck.drawCard());
+				nextPlayer.addCard(deck.drawCard());
+				logger.info("Player {} drew two cards", nextPlayer.getName());
+			} else if (card.getType().equals(CardType.WILDDRAWFOUR)) {
+				nextPlayer.addCard(deck.drawCard());
+				nextPlayer.addCard(deck.drawCard());
+				nextPlayer.addCard(deck.drawCard());
+				nextPlayer.addCard(deck.drawCard());
+				logger.info("Player {} drew four cards", nextPlayer.getName());
+			}
+			state.toggleCurrentTurn();
+		}
 	}
 
 	// Normal behavior for a number card
