@@ -78,7 +78,108 @@ public class Game {
 		return state.restart();
 	}
 
+	// Method in charge of playing a card, validating, changing sequence and placing in discard pile 
 	public synchronized void playCard(String playerName, CardInterface card, boolean uno, UnoColor chosenColor) {
+		PlayerInterface player;
+
+		// Checking if the player actually is playing the game
+		Optional<PlayerInterface> optionalOfPlayer = state.getPlayerByName(playerName);
+		if (optionalOfPlayer.isPresent()) {
+			player = optionalOfPlayer.get();
+		} else {
+			throw new IllegalArgumentException("playerName");
+		}
+
+		// Logic for handling the actual playing of the card 
+		if (isValidPlay(player, card)){
+			handleCardPlay(player, card, uno, chosenColor);    		
+		} else {
+			state.setMessage("Invalid turn");
+		}
+	}
+
+	// Checking if the play is valid
+	private synchronized boolean isValidPlay(PlayerInterface player, CardInterface card) {
+		return player.isCurrentTurn() && playersHandContainsExactCard(player, card) && isMatchingCard(card);
+	}
+
+	private synchronized boolean isMatchingCard(CardInterface card){
+		return card.getColor().equals(state.getTopDiscardPileCard().getColor()) ||
+				card.getNumber() == state.getTopDiscardPileCard().getNumber() ||
+				card.getType().equals(CardType.WILD);
+				// || state.getTopDiscardPileCard().getType().equals(CardType.WILD);
+	}
+
+	// Handling the sequence of the card play 
+	private synchronized void handleCardPlay(PlayerInterface player, CardInterface card, boolean uno, UnoColor chosenColor) {
+		
+		// Initial sequence: remove from players hand, check what happens if uno is called, log
+		removeCardFromPlayersHand(player, card);
+		player.setUno(uno);
+
+		// If it is a black card change the color 
+		if (card.getColor().equals(UnoColor.BLACK)){
+			((ActionCard) card).chooseColor(chosenColor);
+		}
+
+		// Log the values 
+		logger.info("Player {} played card {} / {}", player.getName(), card.getColor(), card.getNumber());
+		logger.info("Player {} has {} cards remaining in hand", player.getName(), player.getHand().size());
+
+		// Check if the player has won, can only win when the card isn't a draw 
+		if (player.getHand().size() == 0 && !card.getType().equals(CardType.WILDDRAWFOUR) && !card.getType().equals(CardType.DRAWTWO)){
+			state.setWinner(player.getName());
+			state.setMessage("Player " + player.getName() + " has won the game");
+			logger.info("Player {} has won the game", player.getName());
+		} else {
+			// Make new top card 
+			deck.addCardToDiscardPile(card);
+			state.setTopDiscardPileCard(card);
+			logger.info("Top card is {} / {}", card.getColor(), card.getNumber());
+
+			switch (card.getType()){
+				case SKIP:
+					handleSkipCard(player);
+					break;
+				case REVERSE:
+					handleReverseCard(player);
+					break;
+				case DRAWTWO:
+				case WILDDRAWFOUR:
+				default:
+					handleNumberCard();
+					break;
+			}
+		}
+	} 
+
+	private synchronized void handleSkipCard(PlayerInterface player) {
+		logger.info("Player {} played a SKIP card, next player's turn is skipped", player.getName());
+		checkUno();	
+		state.toggleCurrentTurn();		// Toggle the turn twice, skipping next player
+		state.toggleCurrentTurn();
+	}
+
+	// Special behavior for a reverse card, for a 2 player game or more than two 
+	private synchronized void handleReverseCard(PlayerInterface player) {
+		logger.info("Player {} played a REVERSE card, play direction changed", player.getName());
+		checkUno();
+		if (state.getPlayers().size() == 2) {
+			state.toggleCurrentTurn();
+		} else {
+			state.togglePlayDirection();
+		}
+		state.toggleCurrentTurn();
+	}
+
+	// Normal behavior for a number card
+	private synchronized void handleNumberCard() {
+		checkUno();
+		state.toggleCurrentTurn();
+	}
+
+	
+	/* public synchronized void playCard(String playerName, CardInterface card, boolean uno, UnoColor chosenColor) {
 		PlayerInterface player;
 		Optional<PlayerInterface> optionalOfPlayer = state.getPlayerByName(playerName);
 		if (optionalOfPlayer.isPresent()) {
@@ -139,7 +240,7 @@ public class Game {
 		} else {
 			state.setMessage("Invalid turn");
 		}
-	}
+	} */
 
 	public synchronized void check(String playerName) {
 		// Only Check and Play can trigger the next players turn

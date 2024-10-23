@@ -10,6 +10,7 @@ GUI/Events/EventListener.class
 GUI/Controller/GameOverviewController.class
 Utils/AppPropsReader.class
 Game/Game$PlayDirection.class
+Game/Game$1.class
 Card/UnoColor.class
 Player/Player.class
 GUI/Events/RequestEventListener.class
