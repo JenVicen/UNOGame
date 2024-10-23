@@ -7,7 +7,7 @@
 <?import javafx.scene.image.ImageView ?>
 <?import javafx.scene.layout.* ?>
 <?import javafx.scene.text.Font ?>
-<GridPane style="-fx-background-color: RED;" hgap="50" vgap="10" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" alignment="center" prefHeight="625.0" prefWidth="1000.0" fx:id="rootGrid">
+<GridPane style="-fx-background-color: #7188a8;" hgap="50" vgap="10" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" alignment="center" prefHeight="625.0" prefWidth="1000.0" fx:id="rootGrid">
     <padding>
         <Insets top="50" right="50" bottom="50" left="50" />
     </padding>
@@ -55,7 +55,7 @@
                         <Font size="24.0" />
                     </font>
                 </Label>
-                <TableView fx:id="playersTable" GridPane.rowIndex="1" style="-fx-background-color: red;">
+                <TableView fx:id="playersTable" GridPane.rowIndex="1" style="-fx-background-color: #7188a8;">
                     <columns>
                         <TableColumn fx:id="playerIDColumn" prefWidth="147.0" text="Player ID" />
                         <TableColumn fx:id="playerNameColumn" prefWidth="146.0" text="Player Name" />
