@@ -11,9 +11,9 @@ public abstract class AbstractCard implements CardInterface, Serializable {
     /**
      * Constructor
      *
-     * @param type Type of the card
-     * @param color Color of the card
-     * @param number Number of the card
+     * @param type      Type of the card
+     * @param color     Color of the card
+     * @param number    Number of the card
      */
     AbstractCard(CardType type, UnoColor color, int number) {
         if (color == null || (!isValidCardNumber(number))) {

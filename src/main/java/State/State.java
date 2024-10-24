@@ -70,6 +70,15 @@ public class State implements Serializable {
 		}
 		return Optional.of(players.get(idx - 1));
 	}
+	
+	// Function to toggle playDirection when reverse is called 
+	public synchronized void togglePlayDirection() {
+		if (playDirection == Game.PlayDirection.BOTTOM_UP) {
+			playDirection = Game.PlayDirection.TOP_DOWN;
+		} else {
+			playDirection = Game.PlayDirection.BOTTOM_UP;
+		}
+	}
 
 	public synchronized void toggleCurrentTurn() {
 		if (players.size() == 2) {
