@@ -58,14 +58,11 @@ public class Game {
 			// Write player info to state
 			state.setPlayers(state.getPlayers());
 
-			// Placing the topCard only when it isn't a black card or a special card 
+			// Placing the topCard only when it isn't a black card 
 			CardInterface topCard;
 			do {
 				topCard = deck.getTopCardOfDiscardPile();
-			} while (topCard.getColor().equals(UnoColor.BLACK) || 
-					topCard.getType().equals(CardType.REVERSE) || 
-					topCard.getType().equals(CardType.SKIP) || 
-					topCard.getType().equals(CardType.DRAWTWO));
+			} while (topCard.getColor().equals(UnoColor.BLACK));
 			state.setTopDiscardPileCard(topCard);
 			// state.setTopDiscardPileCard(deck.getTopCardOfDiscardPile());
 			isRunning = true;
@@ -84,144 +81,14 @@ public class Game {
 	// Method in charge of playing a card, validating, changing sequence and placing in discard pile 
 	public synchronized void playCard(String playerName, CardInterface card, boolean uno, UnoColor chosenColor) {
 		PlayerInterface player;
-
-		// Checking if the player actually is playing the game
 		Optional<PlayerInterface> optionalOfPlayer = state.getPlayerByName(playerName);
 		if (optionalOfPlayer.isPresent()) {
 			player = optionalOfPlayer.get();
 		} else {
 			throw new IllegalArgumentException("playerName");
 		}
-
-		// Logic for handling the actual playing of the card 
-		if (isValidPlay(player, card)){
-			handleCardPlay(player, card, uno, chosenColor);    		
-		} else {
-			state.setMessage("Invalid turn");
-		}
-	}
-
-	// Checking if the play is valid
-	private synchronized boolean isValidPlay(PlayerInterface player, CardInterface card) {
-		return player.isCurrentTurn() && playersHandContainsExactCard(player, card) && isMatchingCard(card);
-	}
-
-	private synchronized boolean isMatchingCard(CardInterface card){
-		return card.getColor().equals(state.getTopDiscardPileCard().getColor()) ||
-				card.getNumber() == state.getTopDiscardPileCard().getNumber() ||
-				card.getColor().equals(UnoColor.BLACK);  
-				// || card.getType().equals(CardType.WILD);
-				// || state.getTopDiscardPileCard().getType().equals(CardType.WILD);
-	}
-
-	// Handling the sequence of the card play 
-	private synchronized void handleCardPlay(PlayerInterface player, CardInterface card, boolean uno, UnoColor chosenColor) {
 		
-		// Initial sequence: remove from players hand, check what happens if uno is called, log
-		removeCardFromPlayersHand(player, card);
-		player.setUno(uno);
-
-		// If it is a black card change the color 
-		if (card.getColor().equals(UnoColor.BLACK)){
-			((ActionCard) card).chooseColor(chosenColor);
-		}
-
-		// Log the values 
-		logger.info("Player {} played card {} / {}", player.getName(), card.getColor(), card.getNumber());
-		logger.info("Player {} has {} cards remaining in hand", player.getName(), player.getHand().size());
-
-		// Check if the player has won, can only win when the card isn't a draw 
-		if (player.getHand().size() == 0 && !card.getType().equals(CardType.WILDDRAWFOUR) && !card.getType().equals(CardType.DRAWTWO)){
-			state.setWinner(player.getName());
-			state.setMessage("Player " + player.getName() + " has won the game");
-			logger.info("Player {} has won the game", player.getName());
-		} else {
-			// Make new top card 
-			deck.addCardToDiscardPile(card);
-			state.setTopDiscardPileCard(card);
-			logger.info("Top card is {} / {}", card.getColor(), card.getNumber());
-
-			switch (card.getType()){
-				case SKIP:
-					handleSkipCard(player);
-					break;
-				case REVERSE:
-					handleReverseCard(player);
-					break;
-				case DRAWTWO:
-				case WILDDRAWFOUR:
-					handleDrawCard(player, card);
-					break;
-				default:
-					handleNumberCard();
-					break;
-			}
-		}
-	} 
-	
-	// Special behavior for a skip card, game flow changes 
-	private synchronized void handleSkipCard(PlayerInterface player) {
-		logger.info("Player {} played a SKIP card, next player's turn is skipped", player.getName());
-		checkUno();	
-		state.toggleCurrentTurn();		// Toggle the turn twice, skipping next player
-		state.toggleCurrentTurn();
-	}
-
-	// Special behavior for a reverse card, for a 2 player game (game flow change) or more than two (change of direction in player order)
-	private synchronized void handleReverseCard(PlayerInterface player) {
-		logger.info("Player {} played a REVERSE card, play direction changed", player.getName());
-		checkUno();
-		if (state.getPlayers().size() == 2) {
-			state.toggleCurrentTurn();
-		} else {
-			state.togglePlayDirection();
-		}
-		state.toggleCurrentTurn();
-	}
-
-	// Special behavior for a draw two card 
-	private synchronized void handleDrawCard(PlayerInterface player, CardInterface card) {
-		logger.info("Player {} played a DRAW card he needs to draw cards and gets skipped", player.getName());
-		checkUno();
-		state.toggleCurrentTurn();
-
-		// Check if player is present
-		Optional<PlayerInterface> nextPlayerOptional = state.getCurrentPlayer();
-		if (nextPlayerOptional.isPresent()) {
-			PlayerInterface nextPlayer = nextPlayerOptional.get();
-
-			// Force them too draw a card based on type of draw 
-			if (card.getType().equals(CardType.DRAWTWO)) {
-				nextPlayer.addCard(deck.drawCard());
-				nextPlayer.addCard(deck.drawCard());
-				logger.info("Player {} drew two cards", nextPlayer.getName());
-			} else if (card.getType().equals(CardType.WILDDRAWFOUR)) {
-				nextPlayer.addCard(deck.drawCard());
-				nextPlayer.addCard(deck.drawCard());
-				nextPlayer.addCard(deck.drawCard());
-				nextPlayer.addCard(deck.drawCard());
-				logger.info("Player {} drew four cards", nextPlayer.getName());
-			}
-			state.toggleCurrentTurn();
-		}
-	}
-
-	// Normal behavior for a number card
-	private synchronized void handleNumberCard() {
-		checkUno();
-		state.toggleCurrentTurn();
-	}
-
-	
-	/* public synchronized void playCard(String playerName, CardInterface card, boolean uno, UnoColor chosenColor) {
-		PlayerInterface player;
-		Optional<PlayerInterface> optionalOfPlayer = state.getPlayerByName(playerName);
-		if (optionalOfPlayer.isPresent()) {
-			player = optionalOfPlayer.get();
-		} else {
-			throw new IllegalArgumentException("playerName");
-		}
-		// Check if is the players turn and if the players hand contains the mentioned card
+		// Check if it's the player's turn and if the player's hand contains the mentioned card
 		if (player.isCurrentTurn() && playersHandContainsExactCard(player, card)) {
 			// Check if card matches current top card
 			if (card.getColor().equals(state.getTopDiscardPileCard().getColor()) ||
@@ -274,7 +141,7 @@ public class Game {
 		} else {
 			state.setMessage("Invalid turn");
 		}
-	} */
+	}		
 
 	public synchronized void check(String playerName) {
 		// Only Check and Play can trigger the next players turn
@@ -305,46 +172,6 @@ public class Game {
 
 	public synchronized State getState() {
 		return Objects.requireNonNullElseGet(state, State::new);
-	}
-
-	private Optional<CardInterface> randomCardMatchingTopCard(String playerName) {
-		Optional<PlayerInterface> optionalCurrentPlayer = state.getPlayerByName(playerName);
-		if (optionalCurrentPlayer.isPresent()) {
-			PlayerInterface currentPlayer = optionalCurrentPlayer.get();
-			Optional<CardInterface> possibleCard = currentPlayer.getHand().stream()
-					.filter(card -> card.getColor().equals(state.getTopDiscardPileCard().getColor())
-							|| card.getNumber() == state.getTopDiscardPileCard().getNumber())
-					.findAny();
-			if (!possibleCard.isPresent()) {
-				possibleCard = currentPlayer.getHand().stream()
-						.filter(c -> c.getType() == CardType.WILD).findAny();
-			}
-			return possibleCard;
-		} else {
-			throw new NullPointerException();
-		}
-	}
-
-	private UnoColor getColorFromRemainingCards(String playerName) {
-		Optional<PlayerInterface> optionalCurrentPlayer = state.getPlayerByName(playerName);
-		if (optionalCurrentPlayer.isPresent()) {
-			Optional<CardInterface> possibleCard = optionalCurrentPlayer.get().getHand().stream().filter(
-					card -> card.getType() != CardType.WILD).findFirst();
-			if (possibleCard.isPresent()) {
-				return possibleCard.get().getColor();
-			}
-		}
-		// return default color
-		return UnoColor.RED;
-	}
-
-	private int cardsLeftInPlayersHand(String playerName) {
-		Optional<PlayerInterface> optionalCurrentPlayer = state.getPlayerByName(playerName);
-		if (optionalCurrentPlayer.isPresent()) {
-			return optionalCurrentPlayer.get().getHand().size();
-		} else {
-			throw new NullPointerException();
-		}
 	}
 
 	// Function in charge of checking if the card is in the player's hand 

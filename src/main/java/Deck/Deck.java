@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Business Class for a uno deck (contains 108 cards as per uno rules).
+ * Class for a uno deck (contains 108 cards as per uno rules).
  */
 public class Deck {
 	private static Logger logger = LoggerFactory.getLogger(Deck.class);
