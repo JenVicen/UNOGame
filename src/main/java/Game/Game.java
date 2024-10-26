@@ -131,7 +131,7 @@ public class Game {
 		logger.info("Player {} has {} cards remaining in hand", player.getName(), player.getHand().size());
 
 		// Check if the player has won, can only win when the card isn't a draw 
-		if (player.getHand().size() == 0 && !card.getType().equals(CardType.WILDDRAWFOUR) && !card.getType().equals(CardType.DRAWTWO)){
+		if (player.getHand().size() == 0){
 			state.setWinner(player.getName());
 			state.setMessage("Player " + player.getName() + " has won the game");
 			logger.info("Player {} has won the game", player.getName());
@@ -211,70 +211,6 @@ public class Game {
 		checkUno();
 		state.toggleCurrentTurn();
 	}
-
-	
-	/* public synchronized void playCard(String playerName, CardInterface card, boolean uno, UnoColor chosenColor) {
-		PlayerInterface player;
-		Optional<PlayerInterface> optionalOfPlayer = state.getPlayerByName(playerName);
-		if (optionalOfPlayer.isPresent()) {
-			player = optionalOfPlayer.get();
-		} else {
-			throw new IllegalArgumentException("playerName");
-		}
-		// Check if is the players turn and if the players hand contains the mentioned card
-		if (player.isCurrentTurn() && playersHandContainsExactCard(player, card)) {
-			// Check if card matches current top card
-			if (card.getColor().equals(state.getTopDiscardPileCard().getColor()) ||
-					card.getNumber() == state.getTopDiscardPileCard().getNumber() ||
-					card.getType().equals(CardType.WILD) ||
-					state.getTopDiscardPileCard().getType().equals(CardType.WILD)
-			) {
-				// Remove from players hand
-				removeCardFromPlayersHand(player, card);
-				player.setUno(uno);
-
-				// If it's a wildcard change the color
-				if (card.getType().equals(CardType.WILD)) {
-					((ActionCard) card).chooseColor(chosenColor);
-				}
-
-				logger.info("Player {} played card {} / {}", player.getName(), card.getColor(), card.getNumber());
-				logger.info("Player {} has {} cards remaining in hand", player.getName(), player.getHand().size());
-
-				// Check if player has won the game
-				if (player.getHand().size() == 0) {
-					state.setWinner(player.getName());
-					state.setMessage("Player " + player.getName() + " has won the game");
-					logger.info("Player {} has won the game", player.getName());
-				} else {
-					// Make new top card
-					deck.addCardToDiscardPile(card);
-					state.setTopDiscardPileCard(card);
-					logger.info("Top card is {} / {}", card.getColor(), card.getNumber());
-
-					// Handle the skip card 
-					if(card.getType().equals(CardType.SKIP)){
-						logger.info("Player {} played a SKIP card, next player's turn is skipped", player.getName());
-						state.toggleCurrentTurn();		// Toggle the turn twice 
-					}
-
-					// Handle the reverse card 
-					if(card.getType().equals(CardType.REVERSE)){
-						logger.info("Player {} played a REVERSE card, play direction changed", player.getName());
-						state.togglePlayDirection();	// Change the direction
-					}
-
-					// Toggle current turn flags
-					checkUno();
-					state.toggleCurrentTurn();
-				}
-			} else {
-				state.setMessage("Invalid turn");
-			}
-		} else {
-			state.setMessage("Invalid turn");
-		}
-	} */
 
 	public synchronized void check(String playerName) {
 		// Only Check and Play can trigger the next players turn
