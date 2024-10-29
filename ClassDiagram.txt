@@ -1,0 +1,291 @@
+@startuml
+
+abstract class AbstractCard <<Serializable>> {
+    - CardType type
+    - UnoColor color
+    - int number
+    + getType() : CardType
+    + getColor() : UnoColor
+    + getNumber() : int
+    {abstract} # isValidCardNumber(int number) : boolean
+}
+
+class ActionCard {
+    - UnoColor chosenColor
+    + chooseColor(UnoColor chosenColor)
+    # isValidCardNumber(int number) : boolean
+    + reset()
+} 
+
+interface CardInterface <<Serializable>> {
+    + getType() : CardType
+    + getColor() : UnoColor
+    + getNumber() : int
+}
+
+enum CardType {
+    NUMBERCARD
+    SKIP
+    REVERSE
+    DRAWTWO
+    WILD
+    WILDDRAWFOUR
+    - String type
+    + getType() : String
+}
+
+class NumberCard {
+    # isValidCardNumber(int number) : boolean
+}
+
+enum UnoColor {
+    RED
+    BLUE 
+    YELLOW
+    GREEN
+    BLACK
+    - String color 
+    + getColor() : String
+}
+
+class Deck {
+    {static} - Logger logger
+    - List<CardInterface> drawPile
+    - CardInterface topCard
+    - List<CardInterface> discardPile
+    + create()
+    + distribute(List<PlayerInterface> players)
+    + getTopCardOfDiscardPile() : CardInterface
+    + drawCard() : CardInterface
+    + addCardToDiscardPile(CardInterface card)
+    - getDrawPileSize()
+    - getDiscardPileSize()
+}
+
+class Game {
+    {static} - Logger logger
+    - State state
+    - Deck deck
+    - boolean isRunning
+    + isRunning() : boolean
+    + addPlayer(String playerName) : State
+    + start() : State
+    + restart() : State
+    + check(String playerName)
+    + drawCard(String playerName)
+    + playCard(String playerName, CardInterface card, boolean uno, UnoColor chosenColor)
+    + drawCard(String playerName)
+    + getState() : State
+    - initialize()
+    - isValidPlay(PlayerInterface player, CardInterface card) : boolean
+    - isMatchingCard(CardInterface card) : boolean
+    - playersHandContainsExactCard(PlayerInterface player, CardInterface playedCard) : boolean
+    - handleCardPlay(PlayerInterface player, CardInterface card, boolean uno, UnoColor chosenColor)
+    - handleSkipCard(PlayerInterface player)
+    - handleReverseCard(PlayerInterface player)
+    - handleDrawCard(PlayerInterface player, CardInterface card)
+    - handleNumberCard()
+    - removeCardFromPlayersHand(PlayerInterface player, CardInterface playedCard)
+    - checkUno()
+}
+
+enum PlayDirection {
+    BOTTOM_UP
+    TOP_DOWN
+}
+
+class Client {
+    - {static} int SERVER_PORT
+    - {static} String SERVER_ADDRESS
+    - {static} Logger logger
+    - ClientThread clientThread
+    - ClientRequestListenerThread clientRequestListenerThread
+    + {static} hostAvailabilityCheck() : boolean
+    + setEventHandler(EventListener eventListener)
+    + sendRequest(Request.Command command, String playerName) : State
+    + sendRequest(Request.Command command, String playerName, CardInterface card, boolean uno) : State
+    + sendRequest(Request.Command command, String playerName, CardInterface card, boolean uno, UnoColor chosenColor) : State
+    - initializeSockets(ExecutorService threadPool)
+}
+
+class ClientRequestListenerThread <<Runnable>> {
+    - {static} Logger logger
+    - final Socket clientRequestListenerSocket
+    - ObjectInputStream inputStream
+    - ObjectOutputStream outputStream
+    - volatile boolean isRunning
+    - EventListener eventListener
+    + run()
+    + terminate()
+    - sendListenerConnectedMessage()
+    - readRequestFromServer() : Request
+}
+
+class ClientThread <<Runnable>> {
+    - {static} Logger logger
+    - final Socket clientSocket
+    - ObjectInputStream inputStream
+    - ObjectOutputStream outputStream
+    + run()
+    - terminate()
+    - send(Request request)
+    - readStateFromServer() : State
+}
+
+class Player <<Serializable>> {
+    - long id
+    - String name
+    - List<CardInterface> hand
+    - boolean currentTurn
+    - boolean canDraw
+    - boolean uno
+    + getId() : long
+    + getName() : String
+    + getHand() : List<CardInterface>
+    + isCurrentTurn() : boolean
+    + toggleCurrentTurn()
+    + setCanDraw(boolean canDraw)
+    + canDraw() : boolean
+    + setUno(boolean uno)
+    + isUno() : boolean
+    + addCard(CardInterface card)
+}
+
+interface PlayerInterface <<Serializable>> {
+    + getId() : long
+    + getName() : String
+    + getHand() : List<CardInterface>
+    + setCurrentTurn(boolean currentTurn)
+    + isCurrentTurn() : boolean
+    + toggleCurrentTurn()
+    + setCanDraw(boolean can)
+    + setUno(boolean uno)
+    + isUno() : boolean
+    + canDraw() : boolean
+    + addCard(CardInterface card)
+    + setCanDraw(boolean canDraw)
+}
+
+class ClientHandlerThread <<Runnable>> {
+    - {static} Logger logger
+    - Socket socket
+    - ObjectInputStream inputStream
+    - ObjectOutputStream outputStream
+    - volatile boolean isRunning
+    - HashMap<String, ClientHandlerThread> clientInfo
+    - HashMap<String, ClientHandlerThread> clientListenerInfo
+    + run()
+    - terminate() 
+}
+
+class MultiThreadedServer <<Runnable>> {
+    - {static} Logger logger
+    - {static} MultiThreadedServer theInstance
+    - {static} Game game
+    - {static} LinkedHashMap<String, ClientHandlerThread> clientInfo
+    - {static} LinkedHashMap<String, ClientHandlerThread> clientListenerInfo
+    - ServerSocket serverSocket
+    - int serverPort
+    - boolean isStopped
+    - ExecutorService threadPool
+    + {static} getGame() : Game
+    + {static} getInstance() : MultiThreadedServer
+    + run()
+    + stop()
+    - {static} getClientInfo() : HashMap<String, ClientHandlerThread>
+    - {static} getClientListenerInfo() : HashMap<String, ClientHandlerThread>
+    - isStopped() : boolean
+    - openServerSocket()
+}
+
+class Request <<Serializable>> {
+    - Command command
+    - Direction direction
+    - String playerName
+    - CardInterface card
+    - boolean uno
+    - UnoColor chosenColor
+    - State state
+    + getCommand() : Command
+    + getDirection() : Direction
+    + getPlayerName() : String
+    + getState() : State
+    + getUno() : boolean
+    + getCard() : CardInterface
+    + getChosenColor() : UnoColor
+}
+
+enum Direction {
+    SERVER_TO_CLIENT
+    CLIENT_TO_SERVER
+}
+
+enum Command {
+    SUBSCRIBE
+    JOIN
+    JOINED
+    START
+    STARTED
+    RESTART
+    QUIT
+    PLAY
+    PLAYED
+    CHECK
+    DRAW
+    GETSTATE
+}
+
+class Server {
+    # {static} Game game
+    - {static} Logger logger
+    + {static} main(String[] args)
+}
+
+class State <<Serializable>> {
+    - List<PlayerInterface> players
+    - CardInterface topDiscardPileCard
+    - Game.PlayDirection playDirection
+    - String winner
+    - String message
+    + getPlayerByName(String name) : Optional<PlayerInterface>
+    + getCurrentPlayer() : Optional<PlayerInterface>
+    + togglePlayDirection()
+    + toggleCurrentTurn()
+    + addPlayer(String playerName)
+    + removePlayers()
+    + containsPlayer(String playerName) : boolean
+    + getPlayers() : List<PlayerInterface>
+    + setPlayers(List<PlayerInterface> players)
+    + getWinner() : String
+    + setWinner(String winner)
+    + getMessage() : String
+    + setMessage(String message)
+    + getTopDiscardPileCard() : CardInterface
+    + setTopDiscardPileCard(CardInterface topDiscardPileCard)
+    + restart() : State
+    - getNextPlayer() : Optional<PlayerInterface>
+    - getNextPlayer(PlayerInterface currentPlayer) : Optional<PlayerInterface>
+    - getPreviousPlayer(PlayerInterface currentPlayer) : Optional<PlayerInterface>
+}
+
+AbstractCard "1" <|-- "many" ActionCard : extends
+AbstractCard "1" <|-- "many" NumberCard : extends
+CardInterface <|.. AbstractCard : implements
+Deck "1" *-- "many" CardInterface : contains
+Game "1" *-- "1" Deck : uses
+Game "1" *-- "many" PlayerInterface : manages
+Player "1" *-- "many" CardInterface : holds
+PlayerInterface <|.. Player : implements
+Client "1" *-- "1" ClientThread : creates
+Client "1" *-- "1" ClientRequestListenerThread : creates
+ClientThread "1" *-- "1" State : reads
+ClientRequestListenerThread "1" *-- "1" Request : reads
+ClientHandlerThread "1" *-- "1" Game : communicates with
+MultiThreadedServer "1" *-- "1" Game : uses
+MultiThreadedServer "1" *-- "many" ClientHandlerThread : manages
+State "1" *-- "many" PlayerInterface : tracks
+Request "1" *-- "1" CardInterface : references
+Request "1" *-- "1" UnoColor : references
+Server "1" *-- "1" Game : uses
+
+@enduml
