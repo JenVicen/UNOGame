@@ -9,12 +9,12 @@ This project is a simple implementation of a UNO game that is based on the creat
 ## Table of Contents
 - [Introduction](#introduction)
 - [Instructions on how to use it](#instructions-on-how-to-use-it)
+- [Rules of the game](#rules-of-the-game)
 - [Features](#features)
 - [Installation](#installation)
 - [Code Structure](#code-structure)
 - [Design Patterns](#design-patterns)
 - [License](#license)
-
 ## Introduction
 
 

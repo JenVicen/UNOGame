@@ -19,53 +19,20 @@ public class Deck {
 	private CardInterface topCard = null;
 	private List<CardInterface> discardPile = new ArrayList<>(108);
 
-	public Deck() {
-		create();
-	}
+	private final DeckFactory deckFactory;
 
-	/**
-	 * Generate deck of cards based on game rules
-	 */
-	void create() {
-		// Iterate through every color
-		for (UnoColor unoColor : UnoColor.values()) {
-			// For all regular colors
-			if (unoColor != UnoColor.BLACK) {
-				// Create one number card with number: 0
-				drawPile.add(new NumberCard(CardType.NUMBERCARD, unoColor, 0));
+    public Deck() {
+        this.deckFactory = new DeckFactory();
+        create();
+    }
 
-				// Create two number cards with numbers: 1-9
-				for (int i = 1; i <= 9; i++) {
-					drawPile.add(new NumberCard(CardType.NUMBERCARD, unoColor, i));
-					drawPile.add(new NumberCard(CardType.NUMBERCARD, unoColor, i));
-				}
+    void create() {
+        drawPile = deckFactory.createUnoDeck();
+        Collections.shuffle(drawPile);
+        topCard = drawPile.remove(0);
 
-				// Create two skip cards 
-				drawPile.add(new ActionCard(CardType.SKIP, unoColor, 99));
-				drawPile.add(new ActionCard(CardType.SKIP, unoColor, 99));
-
-				// Create two reverse cards 
-				drawPile.add(new ActionCard(CardType.REVERSE, unoColor, 33));
-				drawPile.add(new ActionCard(CardType.REVERSE, unoColor, 33));
-
-				// Create two draw two cards 
-				drawPile.add(new ActionCard(CardType.DRAWTWO, unoColor, 22));
-				drawPile.add(new ActionCard(CardType.DRAWTWO, unoColor, 22));
-			} else {
-				// Create four wild and draw four cards
-				for (int i = 1; i <= 4; i++) {
-					drawPile.add(new ActionCard(CardType.WILD, UnoColor.BLACK, 88));
-					drawPile.add(new ActionCard(CardType.WILDDRAWFOUR, UnoColor.BLACK, 44));
-				}
-			}
-		}
-
-		Collections.shuffle(drawPile);
-
-		topCard = drawPile.remove(0);
-
-		logger.info("{} cards in draw pile", drawPile.size());
-	}
+        logger.info("{} cards in draw pile", drawPile.size());
+    }
 
 	/**
 	 * Distribute cards to players

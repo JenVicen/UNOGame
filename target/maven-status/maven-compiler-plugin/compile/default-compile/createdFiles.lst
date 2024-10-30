@@ -36,6 +36,7 @@ Game/Game.class
 Server/ClientHandlerThread.class
 State/State.class
 Server/Request$Command.class
+Deck/DeckFactory.class
 GUI/Events/RequestEventHandler.class
 Server/Server.class
 GUI/Controller/GameOverviewController$1.class
