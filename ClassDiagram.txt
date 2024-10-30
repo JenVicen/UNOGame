@@ -53,6 +53,7 @@ class Deck {
     - List<CardInterface> drawPile
     - CardInterface topCard
     - List<CardInterface> discardPile
+    - final DeckFactory deckFactory
     + create()
     + distribute(List<PlayerInterface> players)
     + getTopCardOfDiscardPile() : CardInterface
@@ -60,6 +61,11 @@ class Deck {
     + addCardToDiscardPile(CardInterface card)
     - getDrawPileSize()
     - getDiscardPileSize()
+}
+
+class DeckFactory {
+    + createUnoDeck() : List<CardInterface> 
+    - addActionCards(List<CardInterface> cards, UnoColor color, CardType type, int number, int count)
 }
 
 class Game {
@@ -272,6 +278,7 @@ AbstractCard "1" <|-- "many" ActionCard : extends
 AbstractCard "1" <|-- "many" NumberCard : extends
 CardInterface <|.. AbstractCard : implements
 Deck "1" *-- "many" CardInterface : contains
+Deck "1" <--- "1" DeckFactory : uses
 Game "1" *-- "1" Deck : uses
 Game "1" *-- "many" PlayerInterface : manages
 Player "1" *-- "many" CardInterface : holds
@@ -287,5 +294,12 @@ State "1" *-- "many" PlayerInterface : tracks
 Request "1" *-- "1" CardInterface : references
 Request "1" *-- "1" UnoColor : references
 Server "1" *-- "1" Game : uses
-
+Request "1" *-- "1" Command : references
+Request "1" *-- "1" Direction : references 
+Game "1" *-- "1" PlayDirection : defines
+State "1" *-- "1" PlayDirection : uses 
+DeckFactory "1" <-- "many" CardInterface : creates 
+UnoColor "1" --* "1" AbstractCard
+CardType "1" --* "1" AbstractCard
+CardType "1" 
 @enduml
