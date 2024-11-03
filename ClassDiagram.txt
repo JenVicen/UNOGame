@@ -1,5 +1,4 @@
 @startuml
-
 abstract class AbstractCard <<Serializable>> {
     - CardType type
     - UnoColor color
@@ -298,8 +297,7 @@ Request "1" *-- "1" Command : references
 Request "1" *-- "1" Direction : references 
 Game "1" *-- "1" PlayDirection : defines
 State "1" *-- "1" PlayDirection : uses 
-DeckFactory "1" <-- "many" CardInterface : creates 
+DeckFactory "1" <-- "many" AbstractCard : creates 
 UnoColor "1" --* "1" AbstractCard
 CardType "1" --* "1" AbstractCard
-CardType "1" 
 @enduml
