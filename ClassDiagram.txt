@@ -273,12 +273,56 @@ class State <<Serializable>> {
     - getPreviousPlayer(PlayerInterface currentPlayer) : Optional<PlayerInterface>
 }
 
+class WelcomeScreenController <<GUI>> {
+    - Logger logger
+    - TableView<PlayerInterface> playersTable
+    - TextField playerName
+    - Button joinButton
+    + init()
+    + handleJoinButtonAction()
+}
+
+class MainController <<GUI>> {
+    - Logger logger
+    - StackPane root
+    + init()
+}
+
+class EndScreenController <<GUI>> {
+    - Logger logger
+    - Button endButton
+    - Button restartButton
+    + init()
+    + handleExitButtonAction()
+    + handleRestartButtonAction()
+}
+
+class GameOverviewController <<GUI>> {
+    - Logger logger
+    - TableView<CardInterface> playerTable
+    + init()
+    + handlePlayButtonAction()
+    + handleDrawButtonAction()
+    + handleCheckButtonAction()
+}
+
+class ColorDialogController <<GUI>> {
+    - Logger logger
+    - Stage dialogStage
+    + setDialogStage(Stage dialogStage)
+    + handleRedButtonAction()
+    + handleBlueButtonAction()
+    + handleYellowButtonAction()
+    + handleGreenButtonAction()
+}
+
 AbstractCard "1" <|-- "many" ActionCard : extends
 AbstractCard "1" <|-- "many" NumberCard : extends
 CardInterface <|.. AbstractCard : implements
 Deck "1" *-- "many" CardInterface : contains
 Deck "1" <--- "1" DeckFactory : uses
 Game "1" *-- "1" Deck : uses
+Game "1" *-- "1" State : uses  // Connection added here
 Game "1" *-- "many" PlayerInterface : manages
 Player "1" *-- "many" CardInterface : holds
 PlayerInterface <|.. Player : implements
@@ -300,4 +344,12 @@ State "1" *-- "1" PlayDirection : uses
 DeckFactory "1" <-- "many" AbstractCard : creates 
 UnoColor "1" --* "1" AbstractCard
 CardType "1" --* "1" AbstractCard
+
+' Connections between GUI components and the game logic
+WelcomeScreenController "1" -- "1" Game : interacts with
+MainController "1" -- "1" Game : manages
+EndScreenController "1" -- "1" Game : interacts with
+GameOverviewController "1" -- "1" Game : interacts with
+ColorDialogController "1" -- "1" Game : interacts with
+
 @enduml
