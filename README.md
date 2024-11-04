@@ -53,9 +53,10 @@ To install the project, follow these steps:
 4. Build the project to download dependencies. 
 5. Run the project. 
 
-## Code Structure 
-The project is structure into various components:
+## Class Diagram
+The project structure is encompassed by the following class diagram, where all components are labeled and their relationships stated. 
 
+![alt text](ClassDiagram.png "Class Diagram")
 
 
 
